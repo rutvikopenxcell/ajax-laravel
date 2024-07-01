@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Laravel</title>
+    <title>laravel-ajax</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
@@ -19,6 +19,8 @@
                 <tr>
                     <th>No</th>
                     <th>Name</th>
+                    <th>Gender</th>
+                    <th>Phone</th>
                     <th>Email</th>
                     <th>Avatar</th>
                     <th width="100px">Action</th>
@@ -53,20 +55,37 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="col-sm-2 control-label">Phone</label>
+                            <div class="col-sm-12">
+                                <input type="number" class="form-control" id="phone" name="phone" placeholder="Enter Phone" value="" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label class="col-sm-2 control-label">
-                                <input type="radio" name="optradio" checked>Male
+                                <input type="radio" id="male" name="gender" value="male" checked>Male
                             </label>
                             <label class="col-sm-2 control-label">
-                                <input type="radio" name="optradio">Female
+                                <input type="radio" id="female" name="gender" value="female">Female
                             </label>
                         </div>
 
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Avatar</label>
                             <div class="col-sm-12">
-                                <input type="file" class="form-control-file" id="avatar" name="avatar">
+                                <p class="uploadfile">Uploaded image name: <span id="upload_img"></span></p>
+                                <input type="file" class="form-control-file" id="avatar" name="avatar" value="jkj">
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">File</label>
+                            <div class="col-sm-12">
+                                <p class="uploadfile">Uploaded file name: <span id="upload_file"></span></p>
+                                <input type="file" class="form-control-file" id="file" name="file">
+                            </div>
+                        </div>
+
                         <div class="col-sm-offset-2 col-sm-10">
                             <button type="submit" class="btn btn-primary" id="saveBtn" value="create">Save changes
                             </button>
@@ -76,118 +95,7 @@
             </div>
         </div>
     </div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
-
-    <script type="text/javascript">
-        $(function() {
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-            var table = $('.data-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('users.getUsers') }}",
-                columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
-                    },
-                    {
-                        data: 'avatar',
-                        name: 'avatar',
-                        render: function(data, type, full, meta) {
-                            return "<img src='/storage/avatars/" + data + "' height='50'/>";
-                        }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
-                ]
-            });
-
-            $('#createNewUser').click(function() {
-                $('#saveBtn').val("create-user");
-                $('#user_id').val('');
-                $('#userForm').trigger("reset");
-                $('#modelHeading').html("Create New User");
-                $('#ajaxModel').modal('show');
-            });
-
-            $('body').on('click', '.editUser', function() {
-                var user_id = $(this).data('id');
-                $.get("{{ route('users.index') }}" + '/' + user_id + '/edit', function(data) {
-                    $('#modelHeading').html("Edit User");
-                    $('#saveBtn').val("edit-user");
-                    $('#ajaxModel').modal('show');
-                    $('#user_id').val(data.id);
-                    $('#name').val(data.name);
-                    $('#email').val(data.email);
-                    $('#password').val('');
-                })
-            });
-
-            $('#saveBtn').click(function(e) {
-                e.preventDefault();
-                $(this).html('Sending..');
-
-                var formData = new FormData($('#userForm')[0]);
-
-                $.ajax({
-                    data: formData,
-                    url: "{{ route('users.store') }}",
-                    type: "POST",
-                    dataType: 'json',
-                    contentType: false,
-                    processData: false,
-                    success: function(data) {
-                        $('#userForm').trigger("reset");
-                        $('#ajaxModel').modal('hide');
-                        table.draw();
-                        $('#saveBtn').html('Save changes');
-                    },
-                    error: function(data) {
-                        console.log('Error:', data);
-                        $('#saveBtn').html('Save changes');
-                    }
-                });
-            });
-
-            $('body').on('click', '.deleteUser', function() {
-                var user_id = $(this).data("id");
-                if (confirm("Are You sure want to delete !")) {
-                    $.ajax({
-                        type: "DELETE",
-                        url: "{{ route('users.store') }}" + '/' + user_id,
-                        success: function(data) {
-                            table.draw();
-                        },
-                        error: function(data) {
-                            console.log('Error:', data);
-                        }
-                    });
-                }
-            });
-
-        });
-    </script>
+    @include('users.script')
 </body>
 
 </html>
